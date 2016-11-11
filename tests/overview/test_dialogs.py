@@ -3,6 +3,8 @@
 
 import pytest
 
+from hamster_gtk.overview.dialogs import ExportType
+
 
 class TestOverviewDialog(object):
     """Unittests for the overview dialog."""
@@ -17,7 +19,8 @@ class TestOverviewDialog(object):
     def test__get_facts_handled_exception(self, overview_dialog, exception, mocker):
         """Make sure that we show error dialog if we encounter an expected exception."""
         overview_dialog._app.store.facts.get_all = mocker.MagicMock(side_effect=exception)
-        show_error = mocker.patch('hamster_gtk.overview.dialogs.helpers.show_error')
+        show_error = mocker.patch(
+            'hamster_gtk.overview.dialogs.overview_dialog.helpers.show_error')
         result = overview_dialog._get_facts()
         assert result is None
         assert show_error.called
@@ -38,9 +41,9 @@ class TestOverviewDialog(object):
         With all its mocks this test is not the best one imageinable, but as
         the method will change rapidly soon this does for now.
         """
-        writer = mocker.patch('hamster_gtk.overview.dialogs.reports.TSVWriter')
+        writer = mocker.patch('hamster_gtk.overview.dialogs.overview_dialog.reports.TSVWriter')
         overview_dialog._get_facts = mocker.MagicMock(return_value={})
-        result = overview_dialog._export_facts(tmpdir.strpath)
+        result = overview_dialog._export_facts(ExportType.CSV, tmpdir.strpath)
         assert result is None
         assert writer.called
         assert overview_dialog._get_facts.called

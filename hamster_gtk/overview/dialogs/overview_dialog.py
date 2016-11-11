@@ -37,8 +37,9 @@ from collections import defaultdict, namedtuple
 from gi.repository import GObject, Gtk
 from hamster_lib import reports
 
-from . import widgets
-from .. import helpers
+from . import ExportType
+from .. import widgets
+from ... import helpers
 
 Totals = namedtuple('Totals', ('activity', 'category', 'date'))
 
@@ -245,14 +246,20 @@ class OverviewDialog(Gtk.Dialog):
         offset = (orig_end - orig_start) + datetime.timedelta(days=1)
         self._daterange = (orig_start + offset, orig_end + offset)
 
-    def _export_facts(self, target_path):
+    def _export_facts(self, target_type, target_path):
         """
         Export current set of facts to file.
 
         Args:
+            target_type (ExportType): Type of the export.
             target_path (text_type): Location to export to.
         """
-        writer = reports.TSVWriter(target_path)
+        if target_type == ExportType.CSV:
+            writer = reports.TSVWriter(target_path)
+        elif target_type == ExportType.ICAL:
+            writer = reports.ICALWriter(target_path)
+        elif target_type == ExportType.XML:
+            writer = reports.XMLWriter(target_path)
         writer.write_report(self._get_facts())
 
     # Widgets
