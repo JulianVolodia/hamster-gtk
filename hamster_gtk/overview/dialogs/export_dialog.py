@@ -21,12 +21,14 @@
 from __future__ import absolute_import
 
 import os.path
-from enum import Enum
 from gettext import gettext as _
 
 from gi.repository import Gtk
+from hamster_lib import reports
 
-ExportType = Enum('ExportType', ('CSV', 'ICAL', 'XML'))
+from hamster_gtk.preferences.widgets import PreferencesGrid
+
+export_writers = {'csv': reports.TSVWriter, 'ical': reports.ICALWriter, 'xml': reports.XMLWriter}
 
 
 class ExportDialog(Gtk.FileChooserDialog):
@@ -34,69 +36,49 @@ class ExportDialog(Gtk.FileChooserDialog):
 
     def __init__(self, parent):
         """
-        Initialize headerbar.
+        Initialize export dialog.
 
         Args:
             parent (Gtk.Window): Parent window for the dialog.
         """
-        super(ExportDialog, self).__init__(_("Please Choose where to export to"), parent,
+        super(ExportDialog, self).__init__(_("Please choose where to export to"), parent,
             Gtk.FileChooserAction.SAVE, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                                          Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
 
-        self._export_type_chooser = Gtk.ComboBoxText()
-        self._export_type_chooser.append(str(ExportType.CSV), _("CSV"))
-        self._export_type_chooser.append(str(ExportType.ICAL), _("iCal"))
-        self._export_type_chooser.append(str(ExportType.XML), _("XML"))
-        self._export_type_chooser.connect('changed', self._export_type_changed)
+        self._export_format_chooser = self._get_export_format_chooser()
+        self._export_format_chooser.connect('changed', self._on_export_format_changed)
 
-        export_type_label = Gtk.Label(_("Export as file _type:"))
-        export_type_label.set_use_underline(True)
-        export_type_label.set_mnemonic_widget(self._export_type_chooser)
-
-        export_options = Gtk.Grid()
-        export_options.attach(export_type_label, 0, 0, 1, 1)
-        export_options.attach_next_to(self._export_type_chooser, export_type_label,
-                                      Gtk.PositionType.RIGHT, 1, 1)
+        export_options = PreferencesGrid(
+            {'format': (_("Export _format:"), self._export_format_chooser)})
         export_options.show_all()
         self.set_extra_widget(export_options)
 
         self.set_current_name(_("hamster_export"))
-        self._export_type_chooser.set_active_id(str(ExportType.CSV))
+        self._export_format_chooser.set_active_id('csv')
 
-    def _export_type_changed(self, combobox):
+    def _get_export_format_chooser(self):
+        chooser = Gtk.ComboBoxText()
+        chooser.append('csv', _("CSV"))
+        chooser.append('ical', _("iCal"))
+        chooser.append('xml', _("XML"))
+        return chooser
+
+    def _on_export_format_changed(self, combobox):
         """
         Change file extension of the selected file to the one that was chosen.
 
         Args:
             combobox (Gtk.ComboBoxText): Combo box that was changed.
         """
-        new_type = self.get_export_type()
-
-        if new_type == ExportType.CSV:
-            new_ext = 'csv'
-        elif new_type == ExportType.ICAL:
-            new_ext = 'ical'
-        elif new_type == ExportType.XML:
-            new_ext = 'xml'
-
+        new_ext = self.get_export_format()
         (name, ext) = os.path.splitext(self.get_current_name())
         self.set_current_name('{}.{}'.format(name, new_ext))
 
-    def get_export_type(self):
+    def get_export_format(self):
         """
-        Return currently selected export type.
-
-        GTK only allows string IDs, so the ID has to be transformed into enum.
+        Return currently selected export format.
 
         Returns:
-            ExportType: Currently selected export type.
-
-        Raises:
-            ValueError: When the type does not match any enum value.
+            text_type: Currently selected export format.
         """
-        active_type = self._export_type_chooser.get_active_id()
-        for val in ExportType:
-            if active_type == str(val):
-                return val
-
-        raise ValueError('Unknown export type.')
+        return self._export_format_chooser.get_active_id()

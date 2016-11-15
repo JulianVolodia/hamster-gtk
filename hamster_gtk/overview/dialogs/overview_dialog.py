@@ -35,9 +35,8 @@ import operator
 from collections import defaultdict, namedtuple
 
 from gi.repository import GObject, Gtk
-from hamster_lib import reports
 
-from . import ExportType
+from . import export_writers
 from .. import widgets
 from ... import helpers
 
@@ -246,20 +245,15 @@ class OverviewDialog(Gtk.Dialog):
         offset = (orig_end - orig_start) + datetime.timedelta(days=1)
         self._daterange = (orig_start + offset, orig_end + offset)
 
-    def _export_facts(self, target_type, target_path):
+    def _export_facts(self, target_format, target_path):
         """
         Export current set of facts to file.
 
         Args:
-            target_type (ExportType): Type of the export.
+            target_format (text_type): Type of the export.
             target_path (text_type): Location to export to.
         """
-        if target_type == ExportType.CSV:
-            writer = reports.TSVWriter(target_path)
-        elif target_type == ExportType.ICAL:
-            writer = reports.ICALWriter(target_path)
-        elif target_type == ExportType.XML:
-            writer = reports.XMLWriter(target_path)
+        writer = export_writers[target_format](target_path)
         writer.write_report(self._get_facts())
 
     # Widgets

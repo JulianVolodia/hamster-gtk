@@ -3,8 +3,6 @@
 
 import pytest
 
-from hamster_gtk.overview.dialogs import ExportType
-
 
 class TestOverviewDialog(object):
     """Unittests for the overview dialog."""
@@ -43,7 +41,7 @@ class TestOverviewDialog(object):
         """
         writer = mocker.patch('hamster_gtk.overview.dialogs.overview_dialog.reports.TSVWriter')
         overview_dialog._get_facts = mocker.MagicMock(return_value={})
-        result = overview_dialog._export_facts(ExportType.CSV, tmpdir.strpath)
+        result = overview_dialog._export_facts('csv', tmpdir.strpath)
         assert result is None
         assert writer.called
         assert overview_dialog._get_facts.called

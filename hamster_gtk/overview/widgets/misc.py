@@ -113,8 +113,8 @@ class HeaderBar(Gtk.HeaderBar):
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             target_path = dialog.get_filename()
-            target_type = dialog.get_export_type()
-            parent._export_facts(target_type, target_path)
+            target_format = dialog.get_export_format()
+            parent._export_facts(target_format, target_path)
         else:
             pass
         dialog.destroy()

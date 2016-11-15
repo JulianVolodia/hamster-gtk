@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with 'hamster-gtk'.  If not, see <http://www.gnu.org/licenses/>.
 
-"""This module provide export and overview dialogs that allows access to all facts."""
+"""This module provides an overview dialog allowing access to all facts, and an export dialog."""
 
-from .export_dialog import ExportDialog, ExportType  # NOQA
+from .export_dialog import ExportDialog, export_writers  # NOQA
 from .overview_dialog import OverviewDialog, Totals  # NOQA
