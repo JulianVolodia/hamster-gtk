@@ -43,13 +43,22 @@ class RawFactEntry(Gtk.Entry):
         self.current_segment = None
         self.connect('changed', self._on_changed)
 
-    def replace_segment_string(self, segment_string):
+    def replace_segment_string(self, segment_string, add_prefix=True):
         """Replace the substring of the entry text that matches ``self.current_segment``."""
+        def add_prefix(segment, string):
+            if segment == 'category':
+                result = '@{}'.format(string)
+            else:
+                result = string
+            return result
+
         if not self.match:
             return
 
         match = self.match
         segment = self.current_segment
+        if add_prefix:
+            segment_string = add_prefix(segment, segment_string)
         old_string = _u(self.get_text())
         new_string = '{}{}{}'.format(
             old_string[:match.start(segment)],
@@ -59,14 +68,24 @@ class RawFactEntry(Gtk.Entry):
         self.set_text(new_string)
         self.set_position(match.start(segment) + len(segment_string))
 
-    def get_segment_text(self):
+    def get_segment_text(self, remove_prefix=True):
         """
         Return the string for the segment given by ``self.current_segment``.
 
         Please be advised that his text may include a segments 'prefix', eg.g. ``@`` for
         category of `` #`` for tags.
         """
-        return self.match.group(self.current_segment)
+        def remove_prefix(segment, string):
+            result = string
+            if segment == 'category':
+                result = string[1:]
+            return result
+
+        result = self.match.group(self.current_segment)
+        if remove_prefix:
+            result = remove_prefix(self.current_segment, result)
+        return result
+
 
     # Callbacks
     def _on_facts_changed(self, evtl):
@@ -188,11 +207,6 @@ class RawFactCompletion(Gtk.EntryCompletion):
         solution [please see|https://lazka.github.io/pgi-docs/#Gtk-3.0/
         callbacks.html#Gtk.EntryCompletionMatchFunc].
         """
-        def remove_prefix(segment, string):
-            result = string
-            if segment == 'category':
-                result = string[1:]
-            return result
 
         result = False
         entry = self.get_entry()
@@ -203,21 +217,13 @@ class RawFactCompletion(Gtk.EntryCompletion):
         if hit and entry.match:
             modelstring = _u(hit)
             segment_text = entry.get_segment_text()
-            segment_text = remove_prefix(entry.current_segment, segment_text)
             result = segment_text in modelstring
         return result
 
     def _on_match_selected(self, completion, model, iter):
         """Callback to be executed once a match is selected by the user."""
-        def add_prefix(segment, string):
-            if segment == 'category':
-                result = '@{}'.format(string)
-            else:
-                result = string
-            return result
 
         entry = self.get_entry()
         name = _u(model[iter][0])
-        name = add_prefix(entry.current_segment, name)
         entry.replace_segment_string(name)
         return True
