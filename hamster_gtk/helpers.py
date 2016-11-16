@@ -164,17 +164,21 @@ def decompose_raw_fact_string(text, raw=False):
     time_regex = r'([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]'
     # Whilst we do not really want to do sanity checks here being as specific as
     # possible will enhance matching accuracy.
+    relative_time_regex = r'-\d{1,3}'
     date_regex = r'20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]'
     datetime_regex = r'({date}|{time}|{date} {time})'.format(date=date_regex, time=time_regex)
     # Please note the trailing whitespace!
-    timeinfo_regex = r'({datetime} |{datetime} - {datetime} )'.format(datetime=datetime_regex)
+    timeinfo_regex = r'({relative} |{datetime} |{datetime} - {datetime} )'.format(
+        datetime=datetime_regex,
+        relative=relative_time_regex
+    )
     # This is the central place where we define which characters are viable for
     # our various segments.
     # Please note that this is also where we define each segments 'separator'.
     activity_regex = r'[^@:]+'
     category_regex = r'@[^@,#]+'
     tag_regex = r' (#[^,]+)'
-    description_regex = r',[^@,#]+'
+    description_regex = r',.+'
 
     regex = (
         r'^(?P<timeinfo>{timeinfo})?(?P<activity>{activity})?(?P<category>{category})?'
